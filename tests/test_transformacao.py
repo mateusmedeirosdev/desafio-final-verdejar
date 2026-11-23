@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from etl.transformacao import tratar_email, padronizar_estado, converter_data, converter_valor
+from etl.transformacao import tratar_email, padronizar_estado, converter_data, converter_valor, remover_repetidos
 
 
 def test_email_nulo_permanece_nulo():
@@ -49,3 +49,22 @@ def test_valor_arredonda_para_duas_casas():
 
 def test_valor_texto_com_ponto_nao_e_multiplicado():
     assert converter_valor("94.34") == 94.34
+
+def test_remove_pedido_repetido_pelo_id():
+    pedidos = [{"id": 1}, {"id": 2}, {"id": 1}]
+    unicos, descartados = remover_repetidos(pedidos)
+    assert [p["id"] for p in unicos] == [1, 2]
+    assert descartados == 1
+
+
+def test_mantem_a_primeira_ocorrencia():
+    pedidos = [{"id": 1, "pagina": "primeira"}, {"id": 1, "pagina": "segunda"}]
+    unicos, _ = remover_repetidos(pedidos)
+    assert unicos == [{"id": 1, "pagina": "primeira"}]
+
+
+def test_lista_sem_repetidos_nao_muda():
+    pedidos = [{"id": 1}, {"id": 2}]
+    unicos, descartados = remover_repetidos(pedidos)
+    assert unicos == pedidos
+    assert descartados == 0
