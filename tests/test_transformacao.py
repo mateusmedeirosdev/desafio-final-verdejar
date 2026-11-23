@@ -21,4 +21,7 @@ def test_estado_maiusculo_permanece():
 
 
 def test_estado_com_espacos_e_limpo():
-    assert padronizar_estado(" rs ") == "RS"
+    assert padronizar_estado(" rs ") == "RS" 
+    
+def test_estado_nulo_permanece_nulo():
+    assert padronizar_estado(None) is None
