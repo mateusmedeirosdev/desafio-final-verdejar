@@ -38,6 +38,13 @@ def converter_data(texto):
         formato = "%Y-%m-%d"
     return datetime.strptime(texto, formato).date()
 
+def converter_valor(valor):
+    """ Armadilha - A4
+    Aceita valor numérico ou string com vírgula, devolvendo float arredondado para 2 casas.
+    """
+    if isinstance(valor, str):
+        valor = valor.replace(",", ".")
+    return round(float(valor), 2)
 
 
 
