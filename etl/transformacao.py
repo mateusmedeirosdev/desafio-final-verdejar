@@ -91,6 +91,27 @@ def remover_repetidos(pedidos):
     return pedidos_unicos, descartados
 
 
+def calcular_valor_itens(itens):
+    """ Armadilha - A6
+    Arredonda para centavos (2 casas). Sem isso, a soma pode sair com
+    casas a mais, como 92.19999999999999 no lugar de 92.2, e a
+    comparação com o valor_total ficaria errada.
+    """
+    total = 0
+    for item in itens:
+        total = total + item["quantidade"] * item["preco_unitario"]
+    return round(total, 2)
+
+
+def eh_divergente(valor_total, valor_itens):
+    """ Armadilha - A6
+    Indica se o valor total difere da soma dos itens em mais de 1 centavo (A6).
+    A diferença é arredondada antes da comparação: 100.01 - 100.00 dá
+    0.010000000000005116 no float, o que marcaria como divergente um
+    pedido que está dentro da tolerância.
+    """
+    diferenca = round(abs(valor_total - valor_itens), 2)
+    return diferenca > 0.01
 
 
     
