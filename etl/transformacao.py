@@ -40,12 +40,55 @@ def converter_data(texto):
 
 def converter_valor(valor):
     """ Armadilha - A4
-    Aceita valor numérico ou string com vírgula, devolvendo float arredondado para 2 casas.
+    Converte o valor total do pedido para número com 2 casas (A4).
+
+    O valor chega da API ora como número (94.34), ora como texto com
+    vírgula decimal ("125,84"). Texto tem a vírgula trocada por ponto
+    antes da conversão, porque float() só entende ponto como separador.
+    
+    Atenção: esta função NÃO trata separador de milhar ("1.234,56").
+    Os dados da Verdejar não usam milhar, e remover os pontos antes da
+    troca quebraria textos com ponto decimal:
+    "94.34" -> "9434" -> 9434.0  (erro de 100 vezes)
+    Esse caso é protegido pelo teste test_valor_texto_com_ponto_nao_e_multiplicado.
+
+    Exemplos:
+        converter_valor("125,84") -> 125.84
+        converter_valor(94.34)    -> 94.34
+        converter_valor("94.34")  -> 94.34
+
     """
     if isinstance(valor, str):
         valor = valor.replace(",", ".")
     return round(float(valor), 2)
 
+def remover_repetidos(pedidos):
+    """ Armadilha - A5
+    Remove pedidos repetidos pelo campo "id", mantendo a primeira ocorrência.
+    
+    Devolve a lista de pedidos únicos e a quantidade de repetidos
+    descartados. Usa um set para os ids vistos: a pergunta "já vi este id?"
+    é instantânea, mesmo com milhares de pedidos.
+
+    Exemplos:
+    remover_repetidos([{"id": 1}, {"id": 2}, {"id": 1}])
+        -> ([{"id": 1}, {"id": 2}], 1)
+
+    remover_repetidos([{"id": 1, "pagina": "primeira"}, {"id": 1, "pagina": "segunda"}])
+        -> ([{"id": 1, "pagina": "primeira"}], 1)
+
+    remover_repetidos([{"id": 1}, {"id": 2}])
+        -> ([{"id": 1}, {"id": 2}], 0)
+    """
+    id_vistos = set()
+    pedidos_unicos = []
+    for pedido in pedidos:
+        if pedido["id"] in id_vistos:
+            continue
+        id_vistos.add(pedido["id"])
+        pedidos_unicos.append(pedido)
+    descartados = len(pedidos) - len(pedidos_unicos)
+    return pedidos_unicos, descartados
 
 
 
