@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from etl.transformacao import tratar_email, padronizar_estado, converter_data
+from etl.transformacao import tratar_email, padronizar_estado, converter_data, converter_valor
 
 
 def test_email_nulo_permanece_nulo():
@@ -41,3 +41,14 @@ def test_data_formato_brasileiro_vira_date():
 def test_data_invalida_gera_erro():
     with pytest.raises(ValueError):
         converter_data("31/02/2026")
+
+def test_valor_com_virgula_vira_numero():
+    assert converter_valor("125,84") == 125.84
+
+
+def test_valor_numerico_permanece():
+    assert converter_valor(94.34) == 94.34
+
+
+def test_valor_arredonda_para_duas_casas():
+    assert converter_valor(10.005001) == 10.01
