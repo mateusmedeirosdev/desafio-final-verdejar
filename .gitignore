@@ -4,3 +4,4 @@ brutos/
 __pycache__/
 .pytest_cache/
 saida_*.txt
+descricao_pr.md
