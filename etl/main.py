@@ -6,7 +6,7 @@ from etl.reconciliacao import totais_origem, totais_destino
 
 
 def main():
-    # 1. Extração: busca na API e no CSV e guarda os brutos
+    """Extração: busca na API e no CSV e guarda os brutos"""
     clientes_brutos, pags_c = extrair_paginado("clientes")
     print(f"extracao: clientes paginas={pags_c} registros={len(clientes_brutos)}")
     salvar_bruto("clientes", clientes_brutos)
@@ -18,7 +18,7 @@ def main():
     produtos_brutos = ler_produtos_csv("insumos/dados/produtos.csv")
     salvar_bruto("produtos", produtos_brutos)
 
-    # 2. Transformação: aplica as armadilhas A1 a A6
+    """Transformação: aplica as armadilhas A1 a A6"""
     produtos = transformar_produtos(produtos_brutos)
     clientes, cont_c = transformar_clientes(clientes_brutos)
     pedidos, itens, cont_p = transformar_pedidos(pedidos_brutos)
@@ -29,7 +29,7 @@ def main():
           f"datas_convertidas={cont_p['datas_convertidas']} "
           f"valores_convertidos={cont_p['valores_convertidos']}")
 
-    # 3. Carga: grava no PostgreSQL e lê as contagens e a soma do destino
+    """Carga: grava no PostgreSQL e lê as contagens e a soma do destino"""
     with conectar() as conexao:
         carregar(conexao, produtos, clientes, pedidos, itens)
         c = contar(conexao)
@@ -37,7 +37,7 @@ def main():
     print(f"carga: clientes={c['clientes']} produtos={c['produtos']} "
           f"pedidos={c['pedidos']} itens={c['itens_pedido']}")
 
-    # 4. Reconciliação: compara a soma da origem com a do banco
+    """Reconciliação: compara a soma da origem com a do banco"""
     _, soma_origem = totais_origem(pedidos_brutos)
     print(f"reconciliacao: soma_valor_itens_origem={soma_origem:.2f} "
           f"soma_valor_itens_destino={soma_destino:.2f} "
