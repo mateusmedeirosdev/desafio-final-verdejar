@@ -3,3 +3,4 @@
 brutos/
 __pycache__/
 .pytest_cache/
+saida_*.txt
