@@ -114,4 +114,93 @@ def eh_divergente(valor_total, valor_itens):
     return diferenca > 0.01
 
 
+def transformar_produtos(produtos_brutos):
+    """Converte os tipos dos produtos lidos do CSV (todos chegam como texto)."""
+    produtos = []
+    for p in produtos_brutos:
+        produtos.append({
+            "produto_id": int(p["produto_id"]),
+            "nome": p["nome"],
+            "categoria": p["categoria"],
+            "preco_base": round(float(p["preco_base"]), 2),
+        })
+    return produtos
+
+
+def transformar_clientes(clientes_brutos):
+    """Aplica A1 (e-mail nulo) e A2 (estado) em todos os clientes.
+
+    Devolve a lista tratada e um dicionário de contadores.
+    """
+    clientes = []
+    contadores = {"emails_nulos": 0, "estados_padronizados": 0}
+    for c in clientes_brutos:
+        email = tratar_email(c["email"])
+        estado = padronizar_estado(c["estado"])
+        if email is None:
+            contadores["emails_nulos"] += 1
+        if estado != c["estado"]:
+            contadores["estados_padronizados"] += 1
+        clientes.append({
+            "id": c["id"],
+            "nome": c["nome"],
+            "email": email,
+            "cidade": c["cidade"],
+            "estado": estado,
+            "cadastro_em": converter_data(c["cadastro_em"]),
+        })
+    return clientes, contadores
+
+
+def transformar_pedidos(pedidos_brutos):
+    """Aplica A5, A3, A4 e A6 nos pedidos e separa os itens.
+
+    Os repetidos são removidos primeiro, para os contadores refletirem
+    apenas os pedidos que vão para o banco. A API não envia o campo
+    linha dos itens; ele é gerado pela posição do item no pedido (1, 2, 3...).
+
+    Devolve (pedidos, itens, contadores).
+    """
+    unicos, repetidos = remover_repetidos(pedidos_brutos)
+    pedidos = []
+    itens = []
+    contadores = {
+        "pedidos_unicos": len(unicos),
+        "repetidos_descartados": repetidos,
+        "datas_convertidas": 0,
+        "valores_convertidos": 0,
+        "divergentes": 0,
+    }
+    for p in unicos:
+        if "/" in p["data_pedido"]:
+            contadores["datas_convertidas"] += 1
+        if isinstance(p["valor_total"], str):
+            contadores["valores_convertidos"] += 1
+
+        valor_total = converter_valor(p["valor_total"])
+        valor_itens = calcular_valor_itens(p["itens"])
+        divergente = eh_divergente(valor_total, valor_itens)
+        if divergente:
+            contadores["divergentes"] += 1
+
+        pedidos.append({
+            "id": p["id"],
+            "cliente_id": p["cliente_id"],
+            "data_pedido": converter_data(p["data_pedido"]),
+            "status": p["status"],
+            "valor_total": valor_total,
+            "valor_itens": valor_itens,
+            "divergente": divergente,
+        })
+        for linha, item in enumerate(p["itens"], start=1):
+            itens.append({
+                "pedido_id": p["id"],
+                "linha": linha,
+                "produto_id": item["produto_id"],
+                "quantidade": item["quantidade"],
+                "preco_unitario": item["preco_unitario"],
+            })
+    return pedidos, itens, contadores
+
+
     
